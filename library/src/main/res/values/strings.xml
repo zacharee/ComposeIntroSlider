@@ -1,0 +1,7 @@
+<resources>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="exit">Exit</string>
+    <string name="done">Done</string>
+    <string name="error">Error</string>
+</resources>
