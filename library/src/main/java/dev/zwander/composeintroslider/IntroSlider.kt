@@ -347,8 +347,8 @@ fun IntroSlider(
 ) {
     val state = rememberPagerState()
     val count = pages.size
-    val currentPage = pages[state.currentPage]
-    val canMoveForward = currentPage.canMoveForward()
+    val currentPage = pages.getOrNull(state.currentPage) ?: return
+    val canMoveForward = currentPage.canMoveForward.invoke()
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
