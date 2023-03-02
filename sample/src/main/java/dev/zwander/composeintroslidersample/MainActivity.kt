@@ -6,6 +6,7 @@ import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,23 +29,39 @@ class MainActivity : ComponentActivity() {
                             SimpleIntroPage(
                                 title = { "Hue" },
                                 slideColor = { Color.Red },
-                                contentColor = { Color.White }
+                                contentColor = { Color.White },
+                                extraContent = {
+                                    OutlinedButton(onClick = {}) {
+                                        Text(text = "Test")
+                                    }
+                                },
                             ),
                             SimpleIntroPage(
                                 title = { "Two" },
                                 slideColor = { Color.Green },
-                                contentColor = { Color.Black }
+                                contentColor = { Color.Black },
+                                extraContent = {
+                                    OutlinedButton(onClick = {}) {
+                                        Text(text = "Test")
+                                    }
+                                }
                             ),
                             SimpleIntroPage(
                                 title = { "Three" },
                                 slideColor = { Color.Black },
-                                contentColor = { Color.White }
+                                contentColor = { Color.White },
+                                extraContent = {
+                                    OutlinedButton(onClick = {}) {
+                                        Text(text = "Test")
+                                    }
+                                }
                             )
                         )
                     },
                     onExit = { /*TODO*/ },
                     onDone = { /*TODO*/ },
-                    backPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+                    backPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher,
+                    normalizeElements = true
                 )
             }
         }
