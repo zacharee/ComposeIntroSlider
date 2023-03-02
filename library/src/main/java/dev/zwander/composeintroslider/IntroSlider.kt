@@ -47,9 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -222,8 +220,7 @@ open class SimpleIntroPage(
                         Icon(
                             painter = it,
                             contentDescription = null,
-                            modifier = Modifier.size(128.dp),
-                            tint = MaterialTheme.colorScheme.contentColorFor(slideColor())
+                            modifier = Modifier.size(128.dp)
                         )
                     }
                 }
