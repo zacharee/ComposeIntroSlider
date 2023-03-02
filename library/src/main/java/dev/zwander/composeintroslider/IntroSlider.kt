@@ -190,7 +190,7 @@ open class SimpleStepsPage(
 
 open class SimpleIntroPage(
     val title: @Composable () -> String,
-    val description: String? = null,
+    val description: (@Composable () -> String?)? = null,
     val icon: (@Composable () -> Painter?)? = null,
     override val slideColor: @Composable () -> Color,
     override val canMoveForward: @Composable () -> Boolean = { true },
@@ -257,19 +257,18 @@ open class SimpleIntroPage(
 
     @Composable
     private fun ColumnScope.RenderDescription(isLandscape: Boolean) {
-        description?.let {
+        description?.invoke()?.let {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
-                        if (!fullWeightDescription || isLandscape) Modifier else Modifier.weight(
-                            1f
-                        )
+                        if (!fullWeightDescription || isLandscape) Modifier else
+                            Modifier.weight(1f)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = description,
+                    text = it,
                 )
             }
         }
