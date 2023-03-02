@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -60,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -68,6 +70,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.graphics.ColorUtils
 import com.google.android.material.animation.ArgbEvaluatorCompat
 import io.noties.markwon.Markwon
 import io.noties.markwon.core.CorePlugin
@@ -83,6 +86,7 @@ interface IntroPage {
     val canMoveForward: @Composable () -> Boolean
     val blockedReason: (@Composable () -> String)?
     val slideColor: @Composable () -> Color
+    val contentColor: (@Composable () -> Color)?
 
     @Composable
     fun Render(modifier: Modifier)
@@ -93,6 +97,7 @@ open class SimpleStepsPage(
     steps: @Composable () -> Array<StepInfo>,
     icon: (@Composable () -> Painter?)? = null,
     slideColor: @Composable () -> Color,
+    contentColor: @Composable() (() -> Color)? = null,
     canMoveForward: @Composable () -> Boolean = { true },
     blockedReason: (@Composable () -> String)? = null,
     scrollable: Boolean = true,
@@ -102,6 +107,7 @@ open class SimpleStepsPage(
     description = null,
     icon = icon,
     slideColor = slideColor,
+    contentColor = contentColor,
     canMoveForward = canMoveForward,
     blockedReason = blockedReason,
     scrollable = scrollable,
@@ -193,6 +199,7 @@ open class SimpleIntroPage(
     val description: (@Composable () -> String?)? = null,
     val icon: (@Composable () -> Painter?)? = null,
     override val slideColor: @Composable () -> Color,
+    override val contentColor: @Composable() (() -> Color)? = null,
     override val canMoveForward: @Composable () -> Boolean = { true },
     override val blockedReason: @Composable() (() -> String)? = null,
     val scrollable: Boolean = true,
@@ -279,7 +286,7 @@ open class SimpleIntroPage(
         BoxWithConstraints(
             modifier = modifier
         ) {
-            if (constraints.maxWidth > with (LocalDensity.current) { 600.dp.toPx() }) {
+            if (constraints.maxWidth > with(LocalDensity.current) { 600.dp.toPx() }) {
                 Row(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -352,7 +359,9 @@ fun IntroSlider(
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
-    val currentColor = Color(run {
+    val defaultContentColor = LocalContentColor.current
+
+    val (currentColor, contentColor) = run {
         val position = state.currentPage
         val offset = state.currentPageOffsetFraction
         val next = state.currentPage + offset.sign.toInt()
@@ -364,13 +373,24 @@ fun IntroSlider(
                     .toFloat()
             )
 
-        ArgbEvaluatorCompat.getInstance()
-            .evaluate(
-                scrollPosition,
-                (if (scrollPosition >= 0.5) pages[next] else currentPage).slideColor().toArgb(),
-                (if (scrollPosition >= 0.5) currentPage else pages[next]).slideColor().toArgb(),
-            )
-    })
+        val progress = scrollPosition - min(position, next)
+
+        Color(
+            ArgbEvaluatorCompat.getInstance()
+                .evaluate(
+                    progress,
+                    (if (progress >= 0.5) pages[next] else currentPage).slideColor().toArgb(),
+                    (if (progress >= 0.5) currentPage else pages[next]).slideColor().toArgb(),
+                )
+        ) to Color(
+            ArgbEvaluatorCompat.getInstance()
+                .evaluate(
+                    progress,
+                    ((if (progress >= 0.5) pages[next] else currentPage).contentColor?.invoke() ?: defaultContentColor).toArgb(),
+                    ((if (progress >= 0.5) currentPage else pages[next]).contentColor?.invoke() ?: defaultContentColor).toArgb(),
+                )
+        )
+    }
 
     val firstBlocked = pages.indexOfFirst { !it.canMoveForward() }
     val filteredPages = pages.take(firstBlocked + 1).ifEmpty { pages }
@@ -396,7 +416,11 @@ fun IntroSlider(
         }
     }
 
-    Surface(modifier = modifier, color = currentColor) {
+    Surface(
+        modifier = modifier,
+        color = currentColor,
+        contentColor = contentColor
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -433,7 +457,12 @@ fun IntroSlider(
                     onClick = {
                         if (showAsBack) {
                             scope.launch {
-                                state.animateScrollToPage(max(state.currentPage - 1, 0))
+                                state.animateScrollToPage(
+                                    max(
+                                        state.currentPage - 1,
+                                        0
+                                    )
+                                )
                             }
                         } else {
                             onExit()
@@ -446,21 +475,34 @@ fun IntroSlider(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(
+                    modifier = Modifier.weight(
+                        1f
+                    )
+                )
 
                 HorizontalPagerIndicator(
                     pagerState = state,
                     pageCount = count,
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(
+                    modifier = Modifier.weight(
+                        1f
+                    )
+                )
 
                 IconButton(
                     onClick = {
                         if (showAsNext) {
                             if (canMoveForward) {
                                 scope.launch {
-                                    state.animateScrollToPage(min(state.currentPage + 1, count - 1))
+                                    state.animateScrollToPage(
+                                        min(
+                                            state.currentPage + 1,
+                                            count - 1
+                                        )
+                                    )
                                 }
                             } else {
                                 forwardAlert = blockedReason
