@@ -348,7 +348,14 @@ fun IntroSlider(
     backPressedDispatcher: OnBackPressedDispatcher? = null,
     normalizeElements: Boolean = false,
 ) {
-    val state = rememberPagerState()
+    val firstBlocked = pages.indexOfFirst { !it.canMoveForward() }
+    val filteredPages = pages.take(firstBlocked + 1).ifEmpty { pages }
+    val filteredCount = filteredPages.size
+
+    val state = rememberPagerState {
+        filteredCount
+    }
+
     val count = pages.size
     val position = state.currentPage
     val currentPage = pages.getOrNull(position) ?: return
@@ -392,10 +399,6 @@ fun IntroSlider(
                 )
         )
     }
-
-    val firstBlocked = pages.indexOfFirst { !it.canMoveForward() }
-    val filteredPages = pages.take(firstBlocked + 1).ifEmpty { pages }
-    val filteredCount = filteredPages.size
 
     var forwardAlert by remember {
         mutableStateOf<String?>(null)
@@ -452,7 +455,6 @@ fun IntroSlider(
                     .imePadding()
             ) {
                 HorizontalPager(
-                    pageCount = filteredCount,
                     state = state,
                     modifier = Modifier
                         .weight(1f),

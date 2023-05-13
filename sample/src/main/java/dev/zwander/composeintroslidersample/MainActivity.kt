@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +26,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            var allowed by remember {
+                mutableStateOf(false)
+            }
+
             ComposeIntroSliderTheme {
                 IntroSlider(
                     pages = remember {
@@ -45,6 +53,18 @@ class MainActivity : ComponentActivity() {
                                         Text(text = "Test")
                                     }
                                 }
+                            ),
+                            SimpleIntroPage(
+                                title = { "Blocked" },
+                                slideColor = { Color.Cyan },
+                                contentColor = { Color.Black },
+                                extraContent = {
+                                    Switch(
+                                        checked = allowed,
+                                        onCheckedChange = { allowed = it }
+                                    )
+                                },
+                                canMoveForward = { allowed }
                             ),
                             SimpleIntroPage(
                                 title = { "Three" },
