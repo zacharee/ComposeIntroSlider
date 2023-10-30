@@ -79,7 +79,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 interface IntroPage {
-    val canMoveForward: @Composable () -> Boolean
+    val canMoveForward: () -> Boolean
     val blockedReason: (@Composable () -> String)?
     val slideColor: @Composable () -> Color
     val contentColor: (@Composable () -> Color)?
@@ -94,7 +94,7 @@ open class SimpleStepsPage(
     icon: (@Composable () -> Painter?)? = null,
     slideColor: @Composable () -> Color,
     contentColor: @Composable() (() -> Color)? = null,
-    canMoveForward: @Composable () -> Boolean = { true },
+    canMoveForward: () -> Boolean = { true },
     blockedReason: (@Composable () -> String)? = null,
     scrollable: Boolean = true,
     horizontalTitleRow: Boolean = false
@@ -196,7 +196,7 @@ open class SimpleIntroPage(
     val icon: (@Composable () -> Painter?)? = null,
     override val slideColor: @Composable () -> Color,
     override val contentColor: @Composable() (() -> Color)? = null,
-    override val canMoveForward: @Composable () -> Boolean = { true },
+    override val canMoveForward: () -> Boolean = { true },
     override val blockedReason: @Composable() (() -> String)? = null,
     val scrollable: Boolean = true,
     val horizontalTitleRow: Boolean = false,
@@ -359,7 +359,7 @@ fun IntroSlider(
     val count = pages.size
     val position = state.currentPage
     val currentPage = pages.getOrNull(position) ?: return
-    val canMoveForward = currentPage.canMoveForward.invoke()
+    val canMoveForward = currentPage.canMoveForward
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
@@ -521,7 +521,7 @@ fun IntroSlider(
                     IconButton(
                         onClick = {
                             if (showAsNext) {
-                                if (canMoveForward) {
+                                if (canMoveForward()) {
                                     scope.launch {
                                         state.animateScrollToPage(
                                             min(
