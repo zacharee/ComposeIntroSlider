@@ -49,8 +49,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.currentComposer
+import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -79,7 +83,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 interface IntroPage {
-    val canMoveForward: @Composable () -> Boolean
+    val canMoveForward: () -> Boolean
     val blockedReason: (@Composable () -> String)?
     val slideColor: @Composable () -> Color
     val contentColor: (@Composable () -> Color)?
@@ -94,7 +98,7 @@ open class SimpleStepsPage(
     icon: (@Composable () -> Painter?)? = null,
     slideColor: @Composable () -> Color,
     contentColor: @Composable() (() -> Color)? = null,
-    canMoveForward: @Composable () -> Boolean = { true },
+    canMoveForward: () -> Boolean = { true },
     blockedReason: (@Composable () -> String)? = null,
     scrollable: Boolean = true,
     horizontalTitleRow: Boolean = false
@@ -196,7 +200,7 @@ open class SimpleIntroPage(
     val icon: (@Composable () -> Painter?)? = null,
     override val slideColor: @Composable () -> Color,
     override val contentColor: @Composable() (() -> Color)? = null,
-    override val canMoveForward: @Composable () -> Boolean = { true },
+    override val canMoveForward: () -> Boolean = { true },
     override val blockedReason: @Composable() (() -> String)? = null,
     val scrollable: Boolean = true,
     val horizontalTitleRow: Boolean = false,
@@ -348,7 +352,13 @@ fun IntroSlider(
     backPressedDispatcher: OnBackPressedDispatcher? = null,
     normalizeElements: Boolean = false,
 ) {
-    val firstBlocked = pages.indexOfFirst { !it.canMoveForward() }
+    var updateCounter by remember(pages) {
+        mutableLongStateOf(0L)
+    }
+
+    val firstBlocked = remember(updateCounter) {
+        pages.indexOfFirst { !it.canMoveForward() }
+    }
     val filteredPages = pages.take(firstBlocked + 1).ifEmpty { pages }
     val filteredCount = filteredPages.size
 
@@ -418,6 +428,10 @@ fun IntroSlider(
         onDispose {
             callback.remove()
         }
+    }
+
+    LaunchedEffect(key1 = state.currentPage) {
+        updateCounter++
     }
 
     MaterialTheme(
@@ -521,6 +535,8 @@ fun IntroSlider(
                     IconButton(
                         onClick = {
                             if (showAsNext) {
+                                updateCounter++
+
                                 if (canMoveForward) {
                                     scope.launch {
                                         state.animateScrollToPage(
