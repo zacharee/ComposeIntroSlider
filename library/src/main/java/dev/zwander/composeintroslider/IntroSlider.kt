@@ -50,11 +50,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.currentComposer
-import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -352,11 +349,11 @@ fun IntroSlider(
     backPressedDispatcher: OnBackPressedDispatcher? = null,
     normalizeElements: Boolean = false,
 ) {
-    var updateCounter by remember(pages) {
-        mutableLongStateOf(0L)
+    var pendingPage by remember(pages) {
+        mutableStateOf<Int?>(null)
     }
 
-    val firstBlocked = remember(updateCounter) {
+    val firstBlocked = remember(pendingPage) {
         pages.indexOfFirst { !it.canMoveForward() }
     }
     val filteredPages = pages.take(firstBlocked + 1).ifEmpty { pages }
@@ -369,7 +366,7 @@ fun IntroSlider(
     val count = pages.size
     val position = state.currentPage
     val currentPage = pages.getOrNull(position) ?: return
-    val canMoveForward = currentPage.canMoveForward.invoke()
+    val canMoveForward = currentPage.canMoveForward
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
@@ -430,8 +427,13 @@ fun IntroSlider(
         }
     }
 
-    LaunchedEffect(key1 = state.currentPage) {
-        updateCounter++
+    LaunchedEffect(key1 = pendingPage) {
+        val newPage = pendingPage
+
+        if (newPage != null && newPage != state.currentPage) {
+            state.animateScrollToPage(newPage)
+            pendingPage = null
+        }
     }
 
     MaterialTheme(
@@ -535,16 +537,15 @@ fun IntroSlider(
                     IconButton(
                         onClick = {
                             if (showAsNext) {
-                                updateCounter++
-
-                                if (canMoveForward) {
+                                if (canMoveForward()) {
                                     scope.launch {
-                                        state.animateScrollToPage(
-                                            min(
-                                                state.currentPage + 1,
-                                                count - 1
-                                            )
+                                        val page = min(
+                                            state.currentPage + 1,
+                                            count - 1
                                         )
+
+                                        pendingPage = page
+                                        state.animateScrollToPage(page)
                                     }
                                 } else {
                                     forwardAlert = blockedReason
