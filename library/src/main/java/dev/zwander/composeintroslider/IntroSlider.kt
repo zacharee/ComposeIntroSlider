@@ -48,6 +48,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -134,7 +135,7 @@ open class SimpleStepsPage(
                             .width(4.dp)
                             .fillMaxHeight()
                             .clip(MaterialTheme.shapes.small)
-                            .background(contentColor?.invoke() ?: contentColorFor(color = slideColor()))
+                            .background(LocalContentColor.current),
                     )
 
                     Box(
@@ -280,7 +281,7 @@ open class SimpleIntroPage(
     @Composable
     override fun Render(modifier: Modifier) {
         BoxWithConstraints(
-            modifier = modifier
+            modifier = modifier,
         ) {
             if (constraints.maxWidth > with(LocalDensity.current) { 600.dp.toPx() }) {
                 Row(
@@ -459,108 +460,112 @@ fun IntroSlider(
             }
         },
         typography = MaterialTheme.typography,
-        shapes = MaterialTheme.shapes
+        shapes = MaterialTheme.shapes,
     ) {
-        Surface(
-            modifier = modifier,
-            color = currentColor,
-            contentColor = contentColor
+        CompositionLocalProvider(
+            LocalContentColor provides contentColor,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .systemBarsPadding()
-                    .imePadding()
+            Surface(
+                modifier = modifier,
+                color = currentColor,
+                contentColor = contentColor
             ) {
-                HorizontalPager(
-                    state = state,
+                Column(
                     modifier = Modifier
-                        .weight(1f),
-                    beyondBoundsPageCount = 3
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                        .imePadding()
                 ) {
-                    pages[it].Render(
+                    HorizontalPager(
+                        state = state,
                         modifier = Modifier
-                            .padding(16.dp)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val showAsBack by remember {
-                        derivedStateOf { state.currentPage > 0 }
-                    }
-                    val showAsNext by remember {
-                        derivedStateOf { state.currentPage < count - 1 }
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (showAsBack) {
-                                scope.launch {
-                                    state.animateScrollToPage(
-                                        max(
-                                            state.currentPage - 1,
-                                            0
-                                        )
-                                    )
-                                }
-                            } else {
-                                onExit()
-                            }
-                        }
+                            .weight(1f),
+                        beyondBoundsPageCount = 3
                     ) {
-                        Icon(
-                            imageVector = if (showAsBack) Icons.Default.ArrowBack else Icons.Default.Close,
-                            contentDescription = stringResource(id = if (showAsBack) R.string.previous else R.string.exit)
+                        pages[it].Render(
+                            modifier = Modifier
+                                .padding(16.dp)
                         )
                     }
 
-                    Spacer(
-                        modifier = Modifier.weight(
-                            1f
-                        )
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val showAsBack by remember {
+                            derivedStateOf { state.currentPage > 0 }
+                        }
+                        val showAsNext by remember {
+                            derivedStateOf { state.currentPage < count - 1 }
+                        }
 
-                    HorizontalPagerIndicator(
-                        pagerState = state,
-                        pageCount = count,
-                    )
-
-                    Spacer(
-                        modifier = Modifier.weight(
-                            1f
-                        )
-                    )
-
-                    IconButton(
-                        onClick = {
-                            if (showAsNext) {
-                                if (canMoveForward()) {
+                        IconButton(
+                            onClick = {
+                                if (showAsBack) {
                                     scope.launch {
-                                        val page = min(
-                                            state.currentPage + 1,
-                                            count - 1
+                                        state.animateScrollToPage(
+                                            max(
+                                                state.currentPage - 1,
+                                                0
+                                            )
                                         )
-
-                                        pendingPage = page
-                                        state.animateScrollToPage(page)
                                     }
                                 } else {
-                                    forwardAlert = blockedReason
+                                    onExit()
                                 }
-                            } else {
-                                onDone()
                             }
+                        ) {
+                            Icon(
+                                imageVector = if (showAsBack) Icons.Default.ArrowBack else Icons.Default.Close,
+                                contentDescription = stringResource(id = if (showAsBack) R.string.previous else R.string.exit)
+                            )
                         }
-                    ) {
-                        Icon(
-                            imageVector = if (showAsNext) Icons.Default.ArrowForward else Icons.Default.Done,
-                            contentDescription = stringResource(id = if (showAsNext) R.string.next else R.string.done)
+
+                        Spacer(
+                            modifier = Modifier.weight(
+                                1f
+                            )
                         )
+
+                        HorizontalPagerIndicator(
+                            pagerState = state,
+                            pageCount = count,
+                        )
+
+                        Spacer(
+                            modifier = Modifier.weight(
+                                1f
+                            )
+                        )
+
+                        IconButton(
+                            onClick = {
+                                if (showAsNext) {
+                                    if (canMoveForward()) {
+                                        scope.launch {
+                                            val page = min(
+                                                state.currentPage + 1,
+                                                count - 1
+                                            )
+
+                                            pendingPage = page
+                                            state.animateScrollToPage(page)
+                                        }
+                                    } else {
+                                        forwardAlert = blockedReason
+                                    }
+                                } else {
+                                    onDone()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (showAsNext) Icons.Default.ArrowForward else Icons.Default.Done,
+                                contentDescription = stringResource(id = if (showAsNext) R.string.next else R.string.done)
+                            )
+                        }
                     }
                 }
             }
