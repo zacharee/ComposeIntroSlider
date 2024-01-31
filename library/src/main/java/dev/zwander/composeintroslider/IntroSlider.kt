@@ -98,7 +98,6 @@ open class SimpleStepsPage(
     contentColor: @Composable() (() -> Color)? = null,
     canMoveForward: () -> Boolean = { true },
     blockedReason: (@Composable () -> String)? = null,
-    scrollable: Boolean = true,
     horizontalTitleRow: Boolean = false
 ) : SimpleIntroPage(
     title = title,
@@ -108,7 +107,7 @@ open class SimpleStepsPage(
     contentColor = contentColor,
     canMoveForward = canMoveForward,
     blockedReason = blockedReason,
-    scrollable = scrollable,
+    scrollable = false,
     horizontalTitleRow = horizontalTitleRow,
     fullWeightDescription = false,
     extraContent = {
