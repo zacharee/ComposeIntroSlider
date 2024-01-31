@@ -17,9 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.android.material.R
 import dev.zwander.composeintroslider.IntroSlider
 import dev.zwander.composeintroslider.SimpleIntroPage
+import dev.zwander.composeintroslider.SimpleStepsPage
 import dev.zwander.composeintroslidersample.ui.theme.ComposeIntroSliderTheme
 
 class MainActivity : ComponentActivity() {
@@ -34,6 +37,16 @@ class MainActivity : ComponentActivity() {
                 IntroSlider(
                     pages = remember {
                         listOf(
+                            SimpleStepsPage(
+                                title = { "Steps" },
+                                slideColor = { colorResource(id = R.color.m3_sys_color_dynamic_dark_primary) },
+                                steps = {
+                                    arrayOf(
+                                        SimpleStepsPage.StepInfo(text = "Some Step"),
+                                        SimpleStepsPage.StepInfo(text = "Another Step"),
+                                    )
+                                },
+                            ),
                             SimpleIntroPage(
                                 title = { "Hue" },
                                 slideColor = { Color.Red },

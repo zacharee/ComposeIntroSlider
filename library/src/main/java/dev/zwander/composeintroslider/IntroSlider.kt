@@ -114,6 +114,7 @@ open class SimpleStepsPage(
     extraContent = {
         val items = steps()
         val context = LocalContext.current
+        val localContentColor = LocalContentColor.current
 
         LazyColumn(
             modifier = Modifier
@@ -135,7 +136,7 @@ open class SimpleStepsPage(
                             .width(4.dp)
                             .fillMaxHeight()
                             .clip(MaterialTheme.shapes.small)
-                            .background(LocalContentColor.current),
+                            .background(localContentColor),
                     )
 
                     Box(
@@ -179,6 +180,7 @@ open class SimpleStepsPage(
                                 .toMarkdown(it.text)
                             tv.typeface = if (it.isCommand) Typeface.MONOSPACE else Typeface.DEFAULT
                             tv.maxLines = if (it.isCommand) 1 else Int.MAX_VALUE
+                            tv.setTextColor(localContentColor.toArgb())
                         }
                     }
                 }
