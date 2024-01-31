@@ -134,7 +134,7 @@ open class SimpleStepsPage(
                             .width(4.dp)
                             .fillMaxHeight()
                             .clip(MaterialTheme.shapes.small)
-                            .background(LocalContentColor.current)
+                            .background(contentColor?.invoke() ?: contentColorFor(color = slideColor()))
                     )
 
                     Box(
@@ -370,8 +370,6 @@ fun IntroSlider(
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
-    val defaultContentColor = LocalContentColor.current
-
     val offset = state.currentPageOffsetFraction
     val next = state.currentPage + offset.sign.toInt()
 
@@ -399,10 +397,14 @@ fun IntroSlider(
             ArgbEvaluatorCompat.getInstance()
                 .evaluate(
                     pageProgress,
-                    ((if (pageProgress >= 0.5) pages[next] else currentPage).contentColor?.invoke()
-                        ?: defaultContentColor).toArgb(),
-                    ((if (pageProgress >= 0.5) currentPage else pages[next]).contentColor?.invoke()
-                        ?: defaultContentColor).toArgb(),
+                    (if (pageProgress >= 0.5) pages[next] else currentPage).run {
+                        (contentColor?.invoke()
+                            ?: contentColorFor(color = slideColor())).toArgb()
+                    },
+                    (if (pageProgress >= 0.5) currentPage else pages[next]).run {
+                        (contentColor?.invoke()
+                            ?: contentColorFor(color = slideColor())).toArgb()
+                    },
                 )
         )
     }
