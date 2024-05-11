@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ComposeIntroSlider"
-include ':sample'
-include ':library'
+include ":sample"
+include ":library"

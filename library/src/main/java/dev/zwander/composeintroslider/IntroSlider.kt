@@ -34,6 +34,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -519,7 +521,7 @@ fun IntroSlider(
                             }
                         ) {
                             Icon(
-                                imageVector = if (showAsBack) Icons.Default.ArrowBack else Icons.Default.Close,
+                                imageVector = if (showAsBack) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
                                 contentDescription = stringResource(id = if (showAsBack) R.string.previous else R.string.exit)
                             )
                         }
@@ -563,7 +565,7 @@ fun IntroSlider(
                             }
                         ) {
                             Icon(
-                                imageVector = if (showAsNext) Icons.Default.ArrowForward else Icons.Default.Done,
+                                imageVector = if (showAsNext) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.Done,
                                 contentDescription = stringResource(id = if (showAsNext) R.string.next else R.string.done)
                             )
                         }
