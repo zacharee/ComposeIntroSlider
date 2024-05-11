@@ -483,7 +483,7 @@ fun IntroSlider(
                         state = state,
                         modifier = Modifier
                             .weight(1f),
-                        beyondBoundsPageCount = 3
+                        beyondViewportPageCount = 3
                     ) {
                         pages[it].Render(
                             modifier = Modifier
