@@ -5,7 +5,6 @@ import android.util.TypedValue
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
@@ -36,8 +35,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
@@ -343,7 +340,6 @@ open class SimpleIntroPage(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IntroSlider(
     pages: List<IntroPage>,
@@ -352,6 +348,7 @@ fun IntroSlider(
     modifier: Modifier = Modifier,
     backPressedDispatcher: OnBackPressedDispatcher? = null,
     normalizeElements: Boolean = false,
+    onContentColorChanged: ((Color) -> Unit)? = null,
 ) {
     var pendingPage by remember(pages) {
         mutableStateOf<Int?>(null)
@@ -411,6 +408,10 @@ fun IntroSlider(
                     },
                 )
         )
+    }
+
+    LaunchedEffect(key1 = contentColor) {
+        onContentColorChanged?.invoke(contentColor)
     }
 
     var forwardAlert by remember {
