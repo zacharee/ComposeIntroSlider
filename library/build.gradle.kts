@@ -1,20 +1,21 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("maven-publish")
 }
 
 android {
     namespace = "dev.zwander.composeintroslider"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
     }
 
     lint {
-        targetSdk = 34
+        targetSdk = 36
     }
 
     buildTypes {
@@ -24,28 +25,20 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
     }
+    publishing {
+        singleVariant("release")
+    }
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            create("release", MavenPublication::class.java) {
-                from(components.getByName("release"))
-
-                groupId = "dev.zwander.composeintroslider"
-                artifactId = "final"
-                version = "1.0"
-            }
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

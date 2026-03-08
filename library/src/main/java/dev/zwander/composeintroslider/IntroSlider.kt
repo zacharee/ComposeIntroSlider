@@ -32,11 +32,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +59,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -371,44 +367,60 @@ fun IntroSlider(
     val blockedReason = currentPage.blockedReason?.invoke()
     val scope = rememberCoroutineScope()
 
-    val offset = state.currentPageOffsetFraction
-    val next = state.currentPage + offset.sign.toInt()
+    val next by remember {
+        derivedStateOf {
+            val offset = state.currentPageOffsetFraction
+            state.currentPage + offset.sign.toInt()
+        }
+    }
 
-    val pageProgress = run {
-        val scrollPosition = ((next - position) * offset.absoluteValue + position)
-            .coerceIn(
-                0f,
-                (count - 1)
-                    .coerceAtLeast(0)
-                    .toFloat()
+    val scrollPosition by remember {
+        derivedStateOf {
+            ((next - position) * state.currentPageOffsetFraction.absoluteValue + position)
+                .coerceIn(
+                    0f,
+                    (count - 1)
+                        .coerceAtLeast(0)
+                        .toFloat(),
+                )
+        }
+    }
+
+    val nextSlideColor = pages[next].slideColor()
+    val currentSlideColor = currentPage.slideColor()
+
+    val nextSlideContentColor = pages[next].contentColor?.invoke()
+        ?: contentColorFor(nextSlideColor)
+    val currentSlideContentColor = currentPage.contentColor?.invoke()
+        ?: contentColorFor(currentSlideColor)
+
+    val colors by remember {
+        derivedStateOf {
+            val pageProgress = scrollPosition - min(position, next)
+
+            val currentColor = Color(
+                ArgbEvaluatorCompat.getInstance()
+                    .evaluate(
+                        pageProgress,
+                        (if (pageProgress >= 0.5) nextSlideColor else currentSlideColor).toArgb(),
+                        (if (pageProgress >= 0.5) currentSlideColor else nextSlideColor).toArgb(),
+                    )
             )
 
-        scrollPosition - min(position, next)
+            val contentColor = Color(
+                ArgbEvaluatorCompat.getInstance()
+                    .evaluate(
+                        pageProgress,
+                        (if (pageProgress >= 0.5) nextSlideContentColor else currentSlideContentColor).toArgb(),
+                        (if (pageProgress >= 0.5) currentSlideContentColor else nextSlideContentColor).toArgb(),
+                    )
+            )
+
+            currentColor to contentColor
+        }
     }
 
-    val (currentColor, contentColor) = run {
-        Color(
-            ArgbEvaluatorCompat.getInstance()
-                .evaluate(
-                    pageProgress,
-                    (if (pageProgress >= 0.5) pages[next] else currentPage).slideColor().toArgb(),
-                    (if (pageProgress >= 0.5) currentPage else pages[next]).slideColor().toArgb(),
-                )
-        ) to Color(
-            ArgbEvaluatorCompat.getInstance()
-                .evaluate(
-                    pageProgress,
-                    (if (pageProgress >= 0.5) pages[next] else currentPage).run {
-                        (contentColor?.invoke()
-                            ?: contentColorFor(color = slideColor())).toArgb()
-                    },
-                    (if (pageProgress >= 0.5) currentPage else pages[next]).run {
-                        (contentColor?.invoke()
-                            ?: contentColorFor(color = slideColor())).toArgb()
-                    },
-                )
-        )
-    }
+    val (currentColor, contentColor) = colors
 
     LaunchedEffect(key1 = contentColor) {
         onContentColorChanged?.invoke(contentColor)
@@ -522,7 +534,7 @@ fun IntroSlider(
                             }
                         ) {
                             Icon(
-                                imageVector = if (showAsBack) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
+                                painter = painterResource(if (showAsBack) R.drawable.arrow_back_24px else R.drawable.close_24px),
                                 contentDescription = stringResource(id = if (showAsBack) R.string.previous else R.string.exit)
                             )
                         }
@@ -566,7 +578,7 @@ fun IntroSlider(
                             }
                         ) {
                             Icon(
-                                imageVector = if (showAsNext) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.Done,
+                                painter = painterResource(if (showAsNext) R.drawable.arrow_forward_24px else R.drawable.check_24px),
                                 contentDescription = stringResource(id = if (showAsNext) R.string.next else R.string.done)
                             )
                         }
